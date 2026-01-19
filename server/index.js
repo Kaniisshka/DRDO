@@ -2,7 +2,8 @@ import cookieParser from "cookie-parser"
 import { config } from "dotenv"
 config()
 import express from "express"
-import { dbConnect } from "./config/db"
+import { dbConnect } from "./config/db.js"
+import { userRouter } from "./routes/auth.js"
 
 const app = express()
 
@@ -20,6 +21,9 @@ app.use(cookieParser())
 app.get("/",(req,res)=>{
     res.send('kclvnlvn')
 })
+
+//Routes
+app.use("/auth",userRouter)
 
 const PORT = process.env.PORT
 app.listen(PORT || 4000,()=>{
