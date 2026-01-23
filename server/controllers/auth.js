@@ -5,8 +5,8 @@ import { generateToken } from "../utils/generateToken.js";
 
 export const userRegister = async (req, res) => {
     try {
-        const { name, email, password,  applicationStatus, city, address } = req.body;
-        if (!name || !email || !password || !applicationStatus || !city || !address) {
+        const { name, email, password,role, applicationStatus, city, address } = req.body;
+        if (!name || !email || !password || !role || !applicationStatus || !city || !address) {
             console.log("All fields are required")
             res.status(400).json({ message: "All fields are required" })
             return
@@ -17,7 +17,7 @@ export const userRegister = async (req, res) => {
             return
         }
         const hashedPassword = await bcrypt.hash(password,10);
-        const user = await userModel.create({ name, email, password: hashedPassword, applicationStatus, city, address })
+        const user = await userModel.create({ name, email, password: hashedPassword, applicationStatus,role ,city, address })
         if (!user) {
             res.status(500).json({ message: "User registration failed" })
         }
