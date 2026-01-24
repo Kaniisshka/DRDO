@@ -6,6 +6,9 @@ const centerSchema = new Schema({
   city: String,
   address: String,
   contact: String,
+  capacityPerDay: {
+    type: Number
+  }
 });
 
 export const centerModel = model("center",centerSchema)
