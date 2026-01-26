@@ -7,6 +7,7 @@ export const isLoggedIn = (req,res,next) => {
         
         const decoded = jwt.verify(token,process.env.JSONWEBTOKEN)
         req.user = {
+            id:decoded.id,
             email:decoded.email,
             name:decoded.name,
             role:decoded.role

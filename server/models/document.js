@@ -1,24 +1,27 @@
 import { model, Schema } from "mongoose";
 
 const docSchema = new Schema({
-    user: {
+    userId: {
         type:Schema.Types.ObjectId,
         ref:"user"
     },
-    medicalCert: {
+    medical: {
         url:String,
         status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
         remark:String,
+        uploadedAt: Date
     },
-    policeCert: {
+    police: {
         url:String,
         status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
         remark:String,
+        uploadedAt: Date
     },
-    casteCert: {
+    caste: {
         url:String,
         status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
         remark:String,
+        uploadedAt: Date
     },
     
 },{timestamps:true})

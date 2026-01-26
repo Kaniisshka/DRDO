@@ -5,6 +5,7 @@ import express from "express"
 import { dbConnect } from "./config/db.js"
 import { userRouter } from "./routes/auth.js"
 import { adminRouter } from "./routes/admin.js"
+import { docsRouter } from "./routes/document.js"
 
 const app = express()
 
@@ -26,6 +27,7 @@ app.get("/",(req,res)=>{
 //Routes
 app.use("/auth",userRouter)
 app.use("/admin",adminRouter)
+app.use("/documents",docsRouter)
 
 const PORT = process.env.PORT
 app.listen(PORT || 3000,()=>{

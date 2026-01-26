@@ -22,7 +22,7 @@ export const userRegister = async (req, res) => {
             res.status(500).json({ message: "User registration failed" })
         }
 
-        const token = generateToken({email,role:user.role,name})
+        const token = generateToken({id:user._id,email,role:user.role,name})
         res.cookie("token",token)
         
         res.status(201).json({ message: "User registered successfully", user })
@@ -51,7 +51,7 @@ export const userLogin = async (req, res) => {
             res.status(400).json({ message: "Invalid credentials" })
             return
         }
-        const token = generateToken({email,role:user.role,name:user.name})
+        const token = generateToken({id:user._id,email,role:user.role,name:user.name})
         res.cookie("token",token)
 
         res.status(201).json({ message: "User logged in successfully", user })
