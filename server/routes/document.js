@@ -3,7 +3,7 @@ import { isLoggedIn } from "../middlewares/isLoggedIn.js"
 import { upload } from "../middlewares/multer.js"
 import { cloudinary } from "../config/cloudinary.js"
 import { docModel } from "../models/document.js"
-
+import fs from 'fs'
 export const docsRouter = express.Router()
 
 docsRouter.post("/upload",isLoggedIn,upload.single("file"), async(req,res)=>{
@@ -28,7 +28,7 @@ docsRouter.post("/upload",isLoggedIn,upload.single("file"), async(req,res)=>{
   }
   
   const result = await cloudinary.uploader.upload(req.file.path)
-  
+    fs.unlinkSync(req.file.path)
   if (!result) {
     return res.status(500).json({ message: "File not saved in cloud. Try again." });
 }

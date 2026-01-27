@@ -67,7 +67,7 @@ export const userLogout = async (req,res)=>{
 }
 
 export const getUserProfile = async (req,res)=>{
-    const {email} = req.body
+    const {email} = req.user
     const user = await userModel.findOne({email}).select("-password")
     if (!user) {
         return res.status(400).json({ message: "User not found" })
