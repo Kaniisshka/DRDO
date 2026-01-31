@@ -13,7 +13,10 @@ const appointmentSchema = new Schema({
         type:Schema.Types.ObjectId,
         ref:"center"
     },
-    date:Date,
+    date: {
+        type: Date,
+        required: true
+    },
     status: { type: String, enum: ["booked", "completed", "cancelled"], default: "booked"},
     
 },{timestamps:true})

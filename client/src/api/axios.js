@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: '', // Using proxy in vite.config.js directly
+    baseURL: '/api', // Proxy to backend API
     withCredentials: true, // Essential for handling cookies
     headers: {
         'Content-Type': 'application/json',

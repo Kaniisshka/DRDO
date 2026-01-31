@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
+import { registrationSchema } from '../utils/validationSchemas';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -23,12 +24,22 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setIsLoading(true);
-        const result = await register(formData);
-        if (!result.success) {
-            setError(result.message);
+        try {
+            await registrationSchema.validate(formData, { abortEarly: false });
+            setIsLoading(true);
+            const result = await register(formData);
+            if (!result.success) {
+                setError(result.message);
+            }
+        } catch (validationError) {
+            if (validationError.errors && Array.isArray(validationError.errors)) {
+                setError(validationError.errors.join(', '));
+            } else {
+                setError(validationError.message || 'Validation failed');
+            }
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     return (

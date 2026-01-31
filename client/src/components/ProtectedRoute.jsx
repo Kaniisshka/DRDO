@@ -1,8 +1,9 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const ProtectedRoute = ({ allowedRoles }) => {
     const { user, loading } = useAuth();
+    const location = useLocation();
 
     if (loading) {
         return (
@@ -17,7 +18,12 @@ const ProtectedRoute = ({ allowedRoles }) => {
     }
 
     if (allowedRoles && !allowedRoles.includes(user.role)) {
-        return <Navigate to="/unauthorized" replace />; // Or redirect to their dashboard
+        return <Navigate to="/unauthorized" replace />;
+    }
+
+    // RBAC: Patients cannot access admin routes
+    if (user.role === 'user' && location.pathname.startsWith('/admin')) {
+        return <Navigate to="/dashboard" replace />;
     }
 
     return <Outlet />;

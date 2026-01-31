@@ -6,6 +6,11 @@ import { userModel } from "../models/user.js";
 import { getAllUsers, getOneUser, uploadCentersCsv } from "../controllers/admin.js";
 import { parseCSV } from "../utils/csvParser.js";
 import { docModel } from "../models/document.js";
+import path from "path";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const adminRouter = express.Router();
 

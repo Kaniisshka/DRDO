@@ -54,4 +54,15 @@ docsRouter.get("/my",isLoggedIn,async(req,res)=>{
     return res.status(200).json(doc)
 })
 
+docsRouter.get("/all",isLoggedIn,async(req,res)=>{
+    // This endpoint should be protected for admin only
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const docs = await docModel.find().populate('userId', 'name email city')
+
+    return res.status(200).json(docs)
+})
+
 

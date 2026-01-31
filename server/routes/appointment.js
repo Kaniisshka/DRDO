@@ -90,3 +90,44 @@ appointmentRouter.post("/allot",isLoggedIn,isAuthorized("admin"),async (req,res)
 
 })
 
+appointmentRouter.post("/book", isLoggedIn, async (req, res) => {
+    try {
+        const { type, date } = req.body;
+        const userId = req.user.id;
+
+        if (!type || !date) {
+            return res.status(400).json({ message: "Type and date are required" });
+        }
+
+        if (!["hospital", "police"].includes(type)) {
+            return res.status(400).json({ message: "Invalid type" });
+        }
+
+        const user = await userModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const centers = await centerModel.find({ type, city: user.city });
+        if (!centers.length) {
+            return res.status(404).json({ message: "No centers available in your city" });
+        }
+
+        const randomCenter = centers[Math.floor(Math.random() * centers.length)];
+
+        const appointment = new appointmentModel({
+            userId,
+            centerType: type,
+            centerId: randomCenter._id,
+            date
+        });
+
+        await appointment.save();
+        io.emit('notification', { type: 'appointment', message: 'New appointment booked' });
+        res.status(201).json({ message: "Appointment booked successfully", appointment: { ...appointment.toObject(), center: randomCenter } });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Booking failed" });
+    }
+});
+

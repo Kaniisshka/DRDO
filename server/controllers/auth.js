@@ -5,10 +5,14 @@ import { generateToken } from "../utils/generateToken.js";
 
 export const userRegister = async (req, res) => {
     try {
-        const { name, email, password,role, applicationStatus, city, address } = req.body;
+        const { name, email, password, role, specialization, applicationStatus, city, address } = req.body;
         if (!name || !email || !password || !role || !applicationStatus || !city || !address) {
             console.log("All fields are required")
             res.status(400).json({ message: "All fields are required" })
+            return
+        }
+        if (role === 'doctor' && !specialization) {
+            res.status(400).json({ message: "Specialization is required for doctors" })
             return
         }
         const existingUser = await userModel.findOne({email});
@@ -17,7 +21,7 @@ export const userRegister = async (req, res) => {
             return
         }
         const hashedPassword = await bcrypt.hash(password,10);
-        const user = await userModel.create({ name, email, password: hashedPassword, applicationStatus,role ,city, address })
+        const user = await userModel.create({ name, email, password: hashedPassword, role, specialization, applicationStatus, city, address })
         if (!user) {
             res.status(500).json({ message: "User registration failed" })
         }

@@ -17,13 +17,17 @@ const FileUpload = ({ type, label, currentDoc, onUploadSuccess }) => {
 
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('type', type);
+
+        const endpoint = type === 'medical-record' ? '/medical-records/upload' : '/documents/upload';
+        if (type !== 'medical-record') {
+            formData.append('type', type);
+        }
 
         try {
             setUploading(true);
             setMessage('');
 
-            await api.post('/documents/upload', formData, {
+            await api.post(endpoint, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },

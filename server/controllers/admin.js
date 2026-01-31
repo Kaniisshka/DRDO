@@ -3,11 +3,27 @@ import { userModel } from "../models/user.js";
 import { parseCSV, validatedCenters } from "../utils/csvParser.js";
 import path from "path";
 import { centerModel } from "../models/center.js";
+import { docModel } from "../models/document.js";
 
 
 export const getAllUsers = async (req, res) => {
   const users = await userModel.find({ role: "user" });
-  res.status(200).json({ users });
+
+  // Get document information for each user
+  const usersWithDocs = await Promise.all(
+    users.map(async (user) => {
+      const userDoc = await docModel.findOne({ userId: user._id });
+      return {
+        ...user.toObject(),
+        hasDocuments: !!userDoc,
+        documentsCount: userDoc ? Object.keys(userDoc.toObject()).filter(key =>
+          ['medical', 'police', 'caste'].includes(key) && userDoc[key]
+        ).length : 0
+      };
+    })
+  );
+
+  res.status(200).json({ users: usersWithDocs });
 };
 
 export const getOneUser = async (req, res) => {
