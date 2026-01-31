@@ -6,6 +6,7 @@ import { dbConnect } from "./config/db.js"
 import { userRouter } from "./routes/auth.js"
 import { adminRouter } from "./routes/admin.js"
 import { docsRouter } from "./routes/document.js"
+import { appointmentRouter } from "./routes/appointment.js"
 
 const app = express()
 
@@ -28,6 +29,7 @@ app.get("/",(req,res)=>{
 app.use("/auth",userRouter)
 app.use("/admin",adminRouter)
 app.use("/documents",docsRouter)
+app.use("/appointment",appointmentRouter)
 
 const PORT = process.env.PORT
 app.listen(PORT || 3000,()=>{

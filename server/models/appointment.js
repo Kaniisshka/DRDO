@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
 
 const appointmentSchema = new Schema({
-    user: {
+    userId: {
         type:Schema.Types.ObjectId,
         ref:"user"
     },
@@ -9,7 +9,7 @@ const appointmentSchema = new Schema({
         type:String,
         enum:["hospital","police"],
     },
-    center: {
+    centerId: {
         type:Schema.Types.ObjectId,
         ref:"center"
     },
