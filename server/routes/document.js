@@ -36,7 +36,7 @@ docsRouter.post("/upload", isLoggedIn, upload.single("file"), async (req, res) =
 
 
   doc[type] = {
-    url: result.url,
+    url: result.secure_url,
     status: "pending",
     remark: null,
     uploadedAt: new Date()

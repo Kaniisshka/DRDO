@@ -97,14 +97,7 @@ const AdminDashboard = () => {
         try {
             setReviewing(true);
 
-            // Correct API call with string ID
-            await api.post(`/admin/review/${userId}`, {
-                type,
-                status,
-                remark: reviewRemark
-            });
-
-            // Optimistic update
+            // Optimistic update for documents list
             setDocuments(prevDocs => prevDocs.map(doc => {
                 const docUserId = typeof doc.userId === 'object' ? doc.userId?._id : doc.userId;
                 if (docUserId === userId) {
@@ -113,12 +106,28 @@ const AdminDashboard = () => {
                         [type]: {
                             ...doc[type],
                             status: status,
-                            remark: reviewRemark || doc[type].remark
+                            remark: status === 'approved' ? '' : reviewRemark
                         }
                     };
                 }
                 return doc;
             }));
+
+            // ALSO update the users list so the status badge updates immediately
+            const { data: responseData } = await api.post(`/admin/review/${userId}`, {
+                type,
+                status,
+                remark: reviewRemark
+            });
+
+            if (responseData.userStatus) {
+                setUsers(prevUsers => prevUsers.map(user => {
+                    if (user._id === userId) {
+                        return { ...user, applicationStatus: responseData.userStatus };
+                    }
+                    return user;
+                }));
+            }
 
             // Also update user status if needed (optional based on backend logic)
             // Ideally we re-fetch users or update locally if we knew the rule
@@ -155,7 +164,7 @@ const AdminDashboard = () => {
 
                 <div className="flex-1 mb-4">
                     <a
-                        href={`http://localhost:5000/uploads/${docData.fileName}`}
+                        href={docData.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-accent hover:text-accent-hover text-sm underline underline-offset-2 flex items-center gap-1"

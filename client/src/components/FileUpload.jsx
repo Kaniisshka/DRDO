@@ -54,8 +54,8 @@ const FileUpload = ({ type, label, currentDoc, onUploadSuccess }) => {
         }
     };
 
-    const docUrl = currentDoc?.url ? `http://localhost:5000${currentDoc.url}` : null;
-    const docName = currentDoc?.fileName || (docUrl ? 'uploaded-file' : 'Document');
+    const docUrl = currentDoc?.url || null;
+    const docName = currentDoc?.url ? (type + ' Document') : 'Document';
     const isUploaded = !!docUrl && !isDeleted; // If marked deleted locally, treat as not uploaded
     // Allow upload if: not uploaded OR rejected OR marked deleted
     const showUploadForm = !isUploaded || currentDoc?.status === 'rejected' || isDeleted;
