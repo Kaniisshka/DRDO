@@ -5,6 +5,8 @@ const FileUpload = ({ type, label, currentDoc, onUploadSuccess }) => {
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState('');
+    const [isDeleted, setIsDeleted] = useState(false);
+
 
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
@@ -18,10 +20,8 @@ const FileUpload = ({ type, label, currentDoc, onUploadSuccess }) => {
         const formData = new FormData();
         formData.append('file', file);
 
-        const endpoint = type === 'medical-record' ? '/medical-records/upload' : '/documents/upload';
-        if (type !== 'medical-record') {
-            formData.append('type', type);
-        }
+        const endpoint = '/documents/upload';
+        formData.append('type', type);
 
         try {
             setUploading(true);
@@ -35,6 +35,7 @@ const FileUpload = ({ type, label, currentDoc, onUploadSuccess }) => {
 
             setMessage('Upload successful!');
             setFile(null);
+            setIsDeleted(false); // Reset deleted state on new upload
             if (onUploadSuccess) onUploadSuccess();
         } catch (error) {
             console.error(error);
@@ -53,61 +54,114 @@ const FileUpload = ({ type, label, currentDoc, onUploadSuccess }) => {
         }
     };
 
+    const docUrl = currentDoc?.url ? `http://localhost:5000${currentDoc.url}` : null;
+    const docName = currentDoc?.fileName || (docUrl ? 'uploaded-file' : 'Document');
+    const isUploaded = !!docUrl && !isDeleted; // If marked deleted locally, treat as not uploaded
+    // Allow upload if: not uploaded OR rejected OR marked deleted
+    const showUploadForm = !isUploaded || currentDoc?.status === 'rejected' || isDeleted;
+
     return (
         <div className="bg-bg-card rounded-xl p-6 border border-slate-700 shadow-md">
             <div className="flex justify-between items-start mb-4">
                 <h3 className="text-lg font-semibold text-text-primary capitalize">{label}</h3>
-                {currentDoc?.status && (
+                {currentDoc?.status && !isDeleted && (
                     <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(currentDoc.status)} capitalize`}>
                         {currentDoc.status}
                     </span>
                 )}
             </div>
 
-            {currentDoc?.url ? (
+            {isUploaded ? (
                 <div className="mb-4">
                     <p className="text-sm text-text-secondary mb-2">Current Document:</p>
-                    <a
-                        href={currentDoc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-accent hover:underline text-sm break-all"
-                    >
-                        View Document
-                    </a>
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm font-medium text-text-primary truncate max-w-[200px]">{docName}</span>
+                        <a
+                            href={docUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-accent hover:underline text-xs"
+                        >
+                            View
+                        </a>
+                    </div>
+
                     {currentDoc.remark && (
                         <p className="mt-2 text-sm text-yellow-500">Remark: {currentDoc.remark}</p>
+                    )}
+
+                    {/* Change Document Button */}
+                    {currentDoc?.status !== 'approved' && (
+                        <div className="flex gap-2 mt-2">
+                            <button
+                                onClick={async (e) => {
+                                    e.preventDefault();
+                                    console.log("Change button clicked");
+                                    if (window.confirm('Are you sure you want to change this document? The current file will be deleted.')) {
+                                        try {
+                                            setUploading(true);
+                                            await api.delete(`/documents/${type}`);
+                                            setMessage('Document removed. Please upload new file.');
+                                            setIsDeleted(true); // Force local state to deleted
+                                            if (onUploadSuccess) onUploadSuccess();
+                                        } catch (err) {
+                                            console.error(err);
+                                            // Handling 404: If document is not found, it's effectively deleted/missing.
+                                            if (err.response && err.response.status === 404) {
+                                                setMessage('Document already removed. Ready for new upload.');
+                                                setIsDeleted(true); // Force local state to deleted even on 404
+                                                if (onUploadSuccess) onUploadSuccess();
+                                            } else {
+                                                setMessage('Failed to remove document');
+                                            }
+                                        } finally {
+                                            setUploading(false);
+                                        }
+                                    }
+                                }}
+                                className="bg-slate-700 hover:bg-slate-600 text-white rounded px-3 py-1 text-xs transition-colors"
+                                type="button"
+                                disabled={uploading}
+                            >
+                                {uploading ? 'Processing...' : 'Change Document'}
+                            </button>
+                        </div>
                     )}
                 </div>
             ) : (
                 <div className="mb-4 text-sm text-text-secondary italic">No document uploaded</div>
             )}
 
-            {currentDoc?.status !== 'approved' && (
-                <form onSubmit={handleUpload} className="space-y-3">
-                    <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={handleFileChange}
-                        className="block w-full text-sm text-slate-400
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-full file:border-0
-                file:text-xs file:font-semibold
-                file:bg-slate-700 file:text-white
-                hover:file:bg-accent
-              "
-                    />
-                    {message && <p className={`text-xs ${message.includes('success') ? 'text-green-500' : 'text-red-500'}`}>{message}</p>}
+            {message && <p className={`text-xs mb-3 ${message.includes('success') || message.includes('removed') ? 'text-green-500' : 'text-red-500'}`}>{message}</p>}
 
-                    <button
-                        type="submit"
-                        disabled={!file || uploading}
-                        className="w-full bg-slate-700 hover:bg-slate-600 text-white rounded-lg py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {uploading ? 'Uploading...' : 'Upload New'}
-                    </button>
+            {showUploadForm ? (
+                <form onSubmit={handleUpload} className="space-y-3">
+                    <div className="relative">
+                        <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={handleFileChange}
+                            className="block w-full text-sm text-slate-400
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-xs file:font-semibold
+                            file:bg-slate-700 file:text-white
+                            hover:file:bg-accent
+                          "
+                        />
+                    </div>
+
+                    <div className="flex gap-2">
+                        <button
+                            type="submit"
+                            disabled={!file || uploading}
+                            className="flex-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {uploading ? 'Uploading...' : 'Upload New'}
+                        </button>
+                    </div>
                 </form>
-            )}
+            ) : null}
         </div>
     );
 };

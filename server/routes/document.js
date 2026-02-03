@@ -6,63 +6,90 @@ import { docModel } from "../models/document.js"
 import fs from 'fs'
 export const docsRouter = express.Router()
 
-docsRouter.post("/upload",isLoggedIn,upload.single("file"), async(req,res)=>{
-    const {type} = req.body
-    if (!req.file) {
+docsRouter.post("/upload", isLoggedIn, upload.single("file"), async (req, res) => {
+  const { type } = req.body
+  if (!req.file) {
     return res.status(400).json({ message: "File Required" });
   }
 
   if (!["medical", "police", "caste"].includes(type)) {
     return res.status(400).json({ message: "Invalid document type" });
   }
-  
-  let doc = await docModel.findOne({userId:req.user.id})
+
+  let doc = await docModel.findOne({ userId: req.user.id })
   if (!doc) {
     doc = await docModel.create({
-        userId:req.user.id
+      userId: req.user.id
     })
   }
-  
+
   if (doc[type]?.status === "approved") {
-    return res.status(400).json({message:`${type} Document already approved. Reupload not allowed`})
+    return res.status(400).json({ message: `${type} Document already approved. Reupload not allowed` })
   }
-  
+
   const result = await cloudinary.uploader.upload(req.file.path)
-    fs.unlinkSync(req.file.path)
+  fs.unlinkSync(req.file.path)
   if (!result) {
     return res.status(500).json({ message: "File not saved in cloud. Try again." });
-}
+  }
 
 
 
   doc[type] = {
-        url:result.url,
-        status:"pending",
-        remark:null,
-        uploadedAt: new Date()
+    url: result.url,
+    status: "pending",
+    remark: null,
+    uploadedAt: new Date()
   }
 
   await doc.save()
 
   console.log(doc[type].url)
-  res.status(200).json({message:`${type} Document uploaded successfully`})
+  res.status(200).json({ message: `${type} Document uploaded successfully` })
 })
 
-docsRouter.get("/my",isLoggedIn,async(req,res)=>{
-    const doc = await docModel.findOne({userId:req.user.id})
+docsRouter.get("/my", isLoggedIn, async (req, res) => {
+  const doc = await docModel.findOne({ userId: req.user.id })
 
-    return res.status(200).json(doc)
+  return res.status(200).json(doc)
 })
 
-docsRouter.get("/all",isLoggedIn,async(req,res)=>{
-    // This endpoint should be protected for admin only
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: "Admin access required" });
+docsRouter.get("/all", isLoggedIn, async (req, res) => {
+  // This endpoint should be protected for admin only
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+
+  const docs = await docModel.find().populate('userId', 'name email city')
+
+  return res.status(200).json(docs)
+})
+
+docsRouter.delete("/:type", isLoggedIn, async (req, res) => {
+  const { type } = req.params;
+
+  if (!["medical", "police", "caste"].includes(type)) {
+    return res.status(400).json({ message: "Invalid document type" });
+  }
+
+  try {
+    const doc = await docModel.findOne({ userId: req.user.id });
+    if (!doc) {
+      return res.status(404).json({ message: "Document record not found" });
     }
 
-    const docs = await docModel.find().populate('userId', 'name email city')
+    if (doc[type]?.status === "approved") {
+      return res.status(400).json({ message: "Cannot delete approved document" });
+    }
 
-    return res.status(200).json(docs)
-})
+    doc.set(type, undefined);
+
+    await doc.save();
+    res.status(200).json({ message: `${type} document deleted successfully` });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Delete failed" });
+  }
+});
 
 

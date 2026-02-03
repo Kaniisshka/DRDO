@@ -8,6 +8,8 @@ const UserDashboard = () => {
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
 
+
+
     const fetchDocuments = async () => {
         try {
             const { data } = await api.get('/documents/my');
@@ -39,8 +41,6 @@ const UserDashboard = () => {
     return (
         <div className="container mx-auto p-6 max-w-5xl">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-text-primary mb-2">My Dashboard</h1>
-                <p className="text-text-secondary">Manage your documents and appointments.</p>
             </div>
 
             {/* Documents Section */}
@@ -65,12 +65,6 @@ const UserDashboard = () => {
                         type="caste"
                         label="Caste Certificate"
                         currentDoc={documents?.caste}
-                        onUploadSuccess={fetchDocuments}
-                    />
-                    <FileUpload
-                        type="medical-record"
-                        label="Medical Record"
-                        currentDoc={null} // Assuming no current for medical records
                         onUploadSuccess={fetchDocuments}
                     />
                 </div>
@@ -114,13 +108,12 @@ const UserDashboard = () => {
                                             {appointment.centerId?.name || 'Center Name'}
                                         </p>
                                     </div>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                        appointment.status === 'booked'
-                                            ? 'bg-blue-500/10 text-blue-500 border border-blue-500'
-                                            : appointment.status === 'completed'
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${appointment.status === 'booked'
+                                        ? 'bg-blue-500/10 text-blue-500 border border-blue-500'
+                                        : appointment.status === 'completed'
                                             ? 'bg-green-500/10 text-green-500 border border-green-500'
                                             : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500'
-                                    }`}>
+                                        }`}>
                                         {appointment.status}
                                     </span>
                                 </div>
