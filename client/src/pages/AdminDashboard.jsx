@@ -18,6 +18,10 @@ const AdminDashboard = () => {
     const [reviewingDoc, setReviewingDoc] = useState(null);
     const [reviewRemark, setReviewRemark] = useState('');
     const [reviewing, setReviewing] = useState(false);
+    const [processingId, setProcessingId] = useState(null);
+
+    // Search State
+    const [searchTerm, setSearchTerm] = useState('');
 
     const fetchUsers = async () => {
         try {
@@ -145,6 +149,45 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleApproveAssign = async (userId) => {
+        if (!userId) {
+            alert("Error: User ID is missing.");
+            return;
+        }
+
+        try {
+            setProcessingId(userId);
+
+            // 1. Allot Hospital
+            await api.post('/appointment/allot', {
+                userId,
+                type: 'hospital',
+                date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Default to 7 days from now
+            });
+
+            // 2. Allot Police
+            await api.post('/appointment/allot', {
+                userId,
+                type: 'police',
+                date: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Default to 8 days from now
+            });
+
+            // Update local state to remove the user from the list immediately
+            setUsers(prevUsers => prevUsers.filter(u => u._id !== userId));
+
+            alert("Appointments assigned successfully!");
+        } catch (error) {
+            console.error("Failed to assign appointments", error);
+            const errorMsg = error.response?.data?.message;
+            if (errorMsg === 'User already has appointment') {
+                setUsers(prevUsers => prevUsers.filter(u => u._id !== userId));
+            }
+            alert(errorMsg || 'Assignment failed');
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
     const renderDocumentCard = (title, docData, type, userId) => {
         if (!docData) return null;
 
@@ -222,14 +265,34 @@ const AdminDashboard = () => {
                     >
                         Center Data Upload
                     </button>
+                    <button
+                        onClick={() => setActiveTab('new-users')}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'new-users' ? 'bg-accent text-white shadow-lg' : 'text-text-secondary hover:text-text-primary'
+                            }`}
+                    >
+                        New Users
+                    </button>
                 </div>
             </div>
 
             {activeTab === 'users' ? (
                 <div className="bg-bg-card rounded-xl border border-slate-700 overflow-hidden shadow-xl">
-                    <div className="p-6 border-b border-slate-700 flex justify-between items-center">
-                        <h2 className="text-xl font-bold text-text-primary">Candidates List</h2>
-                        <span className="text-xs font-mono text-slate-400 bg-slate-800 px-2 py-1 rounded">Total: {users.length}</span>
+                    <div className="p-6 border-b border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-xl font-bold text-text-primary">Candidates List</h2>
+                            <span className="text-xs font-mono text-slate-400 bg-slate-800 px-2 py-1 rounded">Total: {users.length}</span>
+                        </div>
+
+                        <div className="relative w-full md:w-72">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                            <input
+                                type="text"
+                                placeholder="Search by name or ID..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full bg-slate-800/50 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-all"
+                            />
+                        </div>
                     </div>
 
                     {loadingUsers ? (
@@ -247,94 +310,159 @@ const AdminDashboard = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-700">
-                                    {users.map((user) => {
-                                        const userDoc = getUserDocuments(user._id);
-                                        const isExpanded = expandedUser === user._id;
+                                    {(() => {
+                                        const filteredUsers = users.filter(user =>
+                                            user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                            user._id?.toLowerCase().includes(searchTerm.toLowerCase())
+                                        );
 
-                                        return (
-                                            <div key={user._id} className="contents group">
-                                                <tr className={`transition-colors ${isExpanded ? 'bg-slate-800/40' : 'hover:bg-slate-800/20'}`}>
-                                                    <td className="px-6 py-4">
-                                                        <div>
-                                                            <div className="font-medium text-text-primary text-base">{user.name}</div>
-                                                            <div className="text-text-secondary text-xs">{user.email}</div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-text-secondary capitalize text-sm">{user.role}</td>
-                                                    <td className="px-6 py-4 text-text-secondary text-sm">{user.city || 'N/A'}</td>
-                                                    <td className="px-6 py-4">
-                                                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${user.applicationStatus === 'approved' ? 'border-success/30 text-success bg-success/10' :
-                                                            user.applicationStatus === 'rejected' ? 'border-error/30 text-error bg-error/10' :
-                                                                'border-yellow-500/30 text-yellow-500 bg-yellow-500/10'
-                                                            }`}>
-                                                            {user.applicationStatus || 'Pending'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <button
-                                                            onClick={() => toggleExpand(user._id)}
-                                                            className={`text-sm px-3 py-1.5 rounded border transition-all ${isExpanded
-                                                                ? 'bg-accent/20 border-accent text-accent'
-                                                                : 'border-slate-600 text-text-secondary hover:border-slate-400 hover:text-text-primary'
-                                                                }`}
-                                                        >
-                                                            {isExpanded ? 'Hide Review' : 'Review Docs'}
-                                                        </button>
+                                        if (filteredUsers.length === 0 && !loadingUsers) {
+                                            return (
+                                                <tr>
+                                                    <td colSpan="5" className="px-6 py-12 text-center text-text-secondary">
+                                                        {searchTerm ? `No candidates found matching "${searchTerm}"` : 'No users found in the system.'}
                                                     </td>
                                                 </tr>
-                                                {/* Expanded Row for Documents */}
-                                                {isExpanded && (
-                                                    <tr className="bg-slate-800/20">
-                                                        <td colSpan="5" className="px-6 pb-6 pt-2">
-                                                            <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700/50 animate-in fade-in slide-in-from-top-2 duration-200">
-                                                                {!userDoc ? (
-                                                                    <div className="text-center py-8 text-text-secondary opacity-75">
-                                                                        <span className="text-2xl block mb-2">📂</span>
-                                                                        No documents uploaded by this user yet.
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                                        {userDoc.medical ? (
-                                                                            renderDocumentCard("🏥 Medical Certificate", userDoc.medical, 'medical', user._id)
-                                                                        ) : (
-                                                                            <div className="bg-slate-800/30 rounded-lg p-6 flex items-center justify-center border border-dashed border-slate-700 text-text-secondary">
-                                                                                🏥 Medical Not Uploaded
-                                                                            </div>
-                                                                        )}
+                                            );
+                                        }
 
-                                                                        {userDoc.police ? (
-                                                                            renderDocumentCard("🚔 Police Verification", userDoc.police, 'police', user._id)
-                                                                        ) : (
-                                                                            <div className="bg-slate-800/30 rounded-lg p-6 flex items-center justify-center border border-dashed border-slate-700 text-text-secondary">
-                                                                                🚔 Police Not Uploaded
-                                                                            </div>
-                                                                        )}
+                                        return filteredUsers.map((user) => {
+                                            const userDoc = getUserDocuments(user._id);
+                                            const isExpanded = expandedUser === user._id;
 
-                                                                        {userDoc.caste ? (
-                                                                            renderDocumentCard("📜 Caste Certificate", userDoc.caste, 'caste', user._id)
-                                                                        ) : (
-                                                                            <div className="bg-slate-800/30 rounded-lg p-6 flex items-center justify-center border border-dashed border-slate-700 text-text-secondary">
-                                                                                📜 Caste Not Uploaded
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                )}
+                                            return (
+                                                <div key={user._id} className="contents group">
+                                                    {/* ... row content ... */}
+                                                    <tr className={`transition-colors ${isExpanded ? 'bg-slate-800/40' : 'hover:bg-slate-800/20'}`}>
+                                                        <td className="px-6 py-4">
+                                                            <div>
+                                                                <div className="font-medium text-text-primary text-base">{user.name}</div>
+                                                                <div className="text-text-secondary text-xs">{user.email}</div>
                                                             </div>
                                                         </td>
+                                                        <td className="px-6 py-4 text-text-secondary capitalize text-sm">{user.role === 'user' ? 'Candidate' : user.role}</td>
+                                                        <td className="px-6 py-4 text-text-secondary text-sm">{user.city || 'N/A'}</td>
+                                                        <td className="px-6 py-4">
+                                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${user.applicationStatus === 'approved' ? 'border-success/30 text-success bg-success/10' :
+                                                                user.applicationStatus === 'rejected' ? 'border-error/30 text-error bg-error/10' :
+                                                                    'border-yellow-500/30 text-yellow-500 bg-yellow-500/10'
+                                                                }`}>
+                                                                {user.applicationStatus || 'Pending'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <button
+                                                                onClick={() => toggleExpand(user._id)}
+                                                                className={`text-sm px-3 py-1.5 rounded border transition-all ${isExpanded
+                                                                    ? 'bg-accent/20 border-accent text-accent'
+                                                                    : 'border-slate-600 text-text-secondary hover:border-slate-400 hover:text-text-primary'
+                                                                    }`}
+                                                            >
+                                                                {isExpanded ? 'Hide Review' : 'Review Docs'}
+                                                            </button>
+                                                        </td>
                                                     </tr>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                    {users.length === 0 && (
-                                        <tr>
-                                            <td colSpan="5" className="px-6 py-12 text-center text-text-secondary">No users found in the system.</td>
-                                        </tr>
-                                    )}
+                                                    {/* Expanded Row for Documents */}
+                                                    {isExpanded && (
+                                                        <tr className="bg-slate-800/20">
+                                                            <td colSpan="5" className="px-6 pb-6 pt-2">
+                                                                <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700/50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                                                    {!userDoc ? (
+                                                                        <div className="text-center py-8 text-text-secondary opacity-75">
+                                                                            <span className="text-2xl block mb-2">📂</span>
+                                                                            No documents uploaded by this user yet.
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                                            {userDoc.medical ? (
+                                                                                renderDocumentCard("🏥 Medical Certificate", userDoc.medical, 'medical', user._id)
+                                                                            ) : (
+                                                                                <div className="bg-slate-800/30 rounded-lg p-6 flex items-center justify-center border border-dashed border-slate-700 text-text-secondary">
+                                                                                    🏥 Medical Not Uploaded
+                                                                                </div>
+                                                                            )}
+
+                                                                            {userDoc.police ? (
+                                                                                renderDocumentCard("🚔 Police Verification", userDoc.police, 'police', user._id)
+                                                                            ) : (
+                                                                                <div className="bg-slate-800/30 rounded-lg p-6 flex items-center justify-center border border-dashed border-slate-700 text-text-secondary">
+                                                                                    🚔 Police Not Uploaded
+                                                                                </div>
+                                                                            )}
+
+                                                                            {userDoc.caste ? (
+                                                                                renderDocumentCard("📜 Caste Certificate", userDoc.caste, 'caste', user._id)
+                                                                            ) : (
+                                                                                <div className="bg-slate-800/30 rounded-lg p-6 flex items-center justify-center border border-dashed border-slate-700 text-text-secondary">
+                                                                                    📜 Caste Not Uploaded
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </div>
+                                            );
+                                        });
+                                    })()}
                                 </tbody>
                             </table>
                         </div>
                     )}
+                </div>
+            ) : activeTab === 'new-users' ? (
+                <div className="bg-bg-card rounded-xl border border-slate-700 overflow-hidden shadow-xl">
+                    <div className="p-6 border-b border-slate-700 flex justify-between items-center">
+                        <h2 className="text-xl font-bold text-text-primary">Newly Registered Candidates</h2>
+                        <span className="text-xs font-mono text-slate-400 bg-slate-800 px-2 py-1 rounded">
+                            Pending Assignment: {users.filter(u => u.applicationStatus === 'pending').length}
+                        </span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead className="bg-slate-800/50 text-text-secondary uppercase text-xs tracking-wider">
+                                <tr>
+                                    <th className="px-6 py-4 font-semibold">Candidate</th>
+                                    <th className="px-6 py-4 font-semibold">Location</th>
+                                    <th className="px-6 py-4 font-semibold">Registration Date</th>
+                                    <th className="px-6 py-4 font-semibold text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-700">
+                                {users.filter(u => u.applicationStatus === 'pending').map((user) => (
+                                    <tr key={user._id} className="hover:bg-slate-800/20 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="font-medium text-text-primary">{user.name}</div>
+                                            <div className="text-text-secondary text-xs">{user.email}</div>
+                                        </td>
+                                        <td className="px-6 py-4 text-text-secondary text-sm">{user.city}</td>
+                                        <td className="px-6 py-4 text-text-secondary text-sm">
+                                            {new Date(user.createdAt).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <button
+                                                onClick={() => handleApproveAssign(user._id)}
+                                                disabled={processingId === user._id || (processingId !== null)}
+                                                className="bg-accent hover:bg-accent-hover text-white text-sm px-4 py-2 rounded-lg transition-all shadow-lg shadow-accent/20 disabled:opacity-50"
+                                            >
+                                                {processingId === user._id ? 'Processing...' : 'Approve & Assign'}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {users.filter(u => u.applicationStatus === 'pending').length === 0 && (
+                                    <tr>
+                                        <td colSpan="4" className="px-6 py-12 text-center text-text-secondary">
+                                            No new candidates waiting for approval.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             ) : (
                 <div className="max-w-3xl mx-auto mt-10">
@@ -389,53 +517,56 @@ const AdminDashboard = () => {
                         </form>
                     </div>
                 </div>
-            )}
+            )
+            }
 
             {/* Review Rejection Modal */}
-            {reviewingDoc && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-                    <div className="bg-bg-card rounded-xl border border-slate-700 shadow-2xl max-w-md w-full overflow-hidden transform transition-all scale-100">
-                        <div className="p-6 border-b border-slate-700">
-                            <h3 className="text-xl font-bold text-text-primary">Reject Document</h3>
-                        </div>
-                        <div className="p-6">
-                            <p className="text-text-secondary mb-2 text-sm">
-                                You are about to reject the <span className="font-semibold text-text-primary capitalize">{reviewingDoc.type}</span> document.
-                            </p>
-                            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Rejection Reason</label>
-                            <textarea
-                                value={reviewRemark}
-                                onChange={(e) => setReviewingDoc(prev => ({ ...prev, remark: e.target.value })) || setReviewRemark(e.target.value)}
-                                placeholder="E.g., Document hidden, blurry, wrong format..."
-                                className="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-4 py-3 text-text-primary placeholder:text-slate-600 focus:outline-none focus:border-error focus:ring-1 focus:ring-error transition-all resize-none"
-                                rows="4"
-                                autoFocus
-                            />
-                        </div>
-                        <div className="p-6 pt-0 flex gap-3">
-                            <button
-                                onClick={() => {
-                                    setReviewingDoc(null);
-                                    setReviewRemark('');
-                                }}
-                                className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 py-2.5 rounded-lg font-medium transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={() => {
-                                    handleDocumentReview(reviewingDoc.userId, reviewingDoc.type, 'rejected');
-                                }}
-                                disabled={reviewing || !reviewRemark.trim()}
-                                className="flex-1 bg-error hover:bg-error/80 text-white py-2.5 rounded-lg font-medium shadow-lg shadow-error/20 disabled:opacity-50 transition-all flex justify-center items-center gap-2"
-                            >
-                                {reviewing ? 'Processing...' : 'Confirm Rejection'}
-                            </button>
+            {
+                reviewingDoc && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                        <div className="bg-bg-card rounded-xl border border-slate-700 shadow-2xl max-w-md w-full overflow-hidden transform transition-all scale-100">
+                            <div className="p-6 border-b border-slate-700">
+                                <h3 className="text-xl font-bold text-text-primary">Reject Document</h3>
+                            </div>
+                            <div className="p-6">
+                                <p className="text-text-secondary mb-2 text-sm">
+                                    You are about to reject the <span className="font-semibold text-text-primary capitalize">{reviewingDoc.type}</span> document.
+                                </p>
+                                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Rejection Reason</label>
+                                <textarea
+                                    value={reviewRemark}
+                                    onChange={(e) => setReviewingDoc(prev => ({ ...prev, remark: e.target.value })) || setReviewRemark(e.target.value)}
+                                    placeholder="E.g., Document hidden, blurry, wrong format..."
+                                    className="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-4 py-3 text-text-primary placeholder:text-slate-600 focus:outline-none focus:border-error focus:ring-1 focus:ring-error transition-all resize-none"
+                                    rows="4"
+                                    autoFocus
+                                />
+                            </div>
+                            <div className="p-6 pt-0 flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setReviewingDoc(null);
+                                        setReviewRemark('');
+                                    }}
+                                    className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 py-2.5 rounded-lg font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        handleDocumentReview(reviewingDoc.userId, reviewingDoc.type, 'rejected');
+                                    }}
+                                    disabled={reviewing || !reviewRemark.trim()}
+                                    className="flex-1 bg-error hover:bg-error/80 text-white py-2.5 rounded-lg font-medium shadow-lg shadow-error/20 disabled:opacity-50 transition-all flex justify-center items-center gap-2"
+                                >
+                                    {reviewing ? 'Processing...' : 'Confirm Rejection'}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 

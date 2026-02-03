@@ -72,28 +72,14 @@ const UserDashboard = () => {
 
             {/* Appointments Section */}
             <div>
-                <div className="flex justify-between items-center mb-4">
-                    <div>
-                        <h2 className="text-2xl font-semibold text-text-primary">My Appointments</h2>
-                        <p className="text-text-secondary">View and manage your scheduled appointments.</p>
-                    </div>
-                    <Link
-                        to="/appointment"
-                        className="bg-accent hover:bg-accent-hover text-white px-6 py-2 rounded-lg font-medium transition-colors"
-                    >
-                        Book New Appointment
-                    </Link>
+                <div>
+                    <h2 className="text-2xl font-semibold text-text-primary">My Appointments</h2>
+                    <p className="text-text-secondary">View and manage your scheduled appointments.</p>
                 </div>
 
                 {appointments.length === 0 ? (
                     <div className="bg-bg-card rounded-lg p-8 text-center border border-slate-700">
-                        <p className="text-text-secondary mb-4">No appointments scheduled yet.</p>
-                        <Link
-                            to="/appointment"
-                            className="text-accent hover:text-accent-hover font-medium"
-                        >
-                            Book your first appointment →
-                        </Link>
+                        <p className="text-text-secondary mb-4 italic">Appointment details will appear here once approved by the Admin.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

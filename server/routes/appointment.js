@@ -7,82 +7,96 @@ import { centerModel } from "../models/center.js"
 export const appointmentRouter = express.Router()
 
 
-appointmentRouter.get("/my",isLoggedIn,async(req,res)=>{
-    const apps = await appointmentModel.find({userId:req.user.id}).populate("centerId")
-    if (apps.length===0) return res.status(404).json({message:"No appointments found"})
-    
-        return res.status(200).json(apps)
-    
-})
+appointmentRouter.get("/my", isLoggedIn, async (req, res) => {
+    const apps = await appointmentModel.find({ userId: req.user.id }).populate("centerId")
+    if (apps.length === 0) return res.status(404).json({ message: "No appointments found" })
 
-appointmentRouter.get("/all",isLoggedIn,isAuthorized("admin"),async(req,res)=>{
-    const apps = await appointmentModel.find().populate("centerId")
-    if (!apps.length) return res.status(404).json({message:"No appointments found"})
-    
     return res.status(200).json(apps)
-    
+
 })
 
-appointmentRouter.post("/completed/:id",isLoggedIn,isAuthorized("admin"),async(req,res)=>{
+appointmentRouter.get("/all", isLoggedIn, isAuthorized("admin"), async (req, res) => {
+    const apps = await appointmentModel.find().populate("centerId")
+    if (!apps.length) return res.status(404).json({ message: "No appointments found" })
+
+    return res.status(200).json(apps)
+
+})
+
+appointmentRouter.post("/completed/:id", isLoggedIn, isAuthorized("admin"), async (req, res) => {
     const id = req.params.id
     if (!id) return res.status(400).json({ message: "Either appointmentId is invalid" })
     const appointment = await appointmentModel.findById(id)
     if (!appointment) return res.status(404).json({ message: "Appointment not found" })
-    
+
     if (appointment.status === "completed") return res.status(400).json({ message: "Already Completed" })
-    
+
     appointment.status = "completed"
     await appointment.save();
 
     res.json({
-        message:"Appointment marked as completed",
+        message: "Appointment marked as completed",
         appointment
     })
 })
 
-appointmentRouter.post("/allot",isLoggedIn,isAuthorized("admin"),async (req,res)=>{
+appointmentRouter.post("/allot", isLoggedIn, isAuthorized("admin"), async (req, res) => {
     try {
-        const {userId,type,date} = req.body;
+        const { userId, type, date } = req.body;
 
-    const user = await userModel.findById(userId)
+        const user = await userModel.findById(userId)
 
-    if (!user) return res.status(404).json({ message: "User not found" })
-    if (!["hospital","police"].includes(type)) return res.status(400).json({message:"Invalid centre type"})
+        if (!user) return res.status(404).json({ message: "User not found" })
+        if (!["hospital", "police"].includes(type)) return res.status(400).json({ message: "Invalid centre type" })
 
-    const centerType = type 
+        const centerType = type
 
 
-    const existing = await appointmentModel.findOne({
-        userId:user._id, centerType, status:"booked"
-    })
-    if (existing) return res.status(400).json({message: "User already has appointment"})
+        const existing = await appointmentModel.findOne({
+            userId: user._id, centerType, status: "booked"
+        })
+        if (existing) return res.status(400).json({ message: "User already has appointment" })
 
-    const centers = await centerModel.find({type:centerType,city:user.city})
-    if (!centers.length) return res.status(404).json({message: "No center in this city available"})
-    
-    let selectedCenter = null;
+        const centers = await centerModel.find({ type: centerType, city: user.city })
+        if (!centers.length) return res.status(404).json({ message: "No center in this city available" })
 
-    for (const center of centers)
-    {
-        const booked = await appointmentModel.countDocuments({centerId:center._id,date,status:"booked"})
-        if (booked < center.capacityPerDay) 
-            {
+        let selectedCenter = null;
+
+        for (const center of centers) {
+            const booked = await appointmentModel.countDocuments({ centerId: center._id, date, status: "booked" })
+            if (booked < center.capacityPerDay) {
                 selectedCenter = center
                 break;
-            } 
-    }
+            }
+        }
 
-    if (!selectedCenter) return res.status(400).json({message: "No Capacity available"})
-    
-    const appointment = await appointmentModel.create({
-        centerId:selectedCenter._id,
-        centerType,
-        date,
-        userId,
-        status:"booked"
-    })
+        if (!selectedCenter) return res.status(400).json({ message: "No Capacity available" })
 
-    return res.status(200).json({message: "Appointment Alotted successfully",appointment})
+        const appointment = await appointmentModel.create({
+            centerId: selectedCenter._id,
+            centerType,
+            date,
+            userId,
+            status: "booked"
+        })
+
+        // Update user record with the allotted center
+        if (centerType === "hospital") {
+            user.hospital = selectedCenter.name;
+        } else if (centerType === "police") {
+            user.policeStation = selectedCenter.name;
+        }
+
+        // If both are now set (or if this is the final step in your business logic), 
+        // mark as overall allotted. 
+        // Given the frontend calls this twice, we check if BOTH are now present.
+        if (user.hospital && user.policeStation) {
+            user.appointmentAllotted = true;
+        }
+
+        await user.save();
+
+        return res.status(200).json({ message: "Appointment Alotted successfully", appointment })
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "allotment failed" });

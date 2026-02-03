@@ -7,7 +7,10 @@ import { docModel } from "../models/document.js";
 
 
 export const getAllUsers = async (req, res) => {
-  const users = await userModel.find({ role: "user" });
+  const users = await userModel.find({
+    role: "user",
+    appointmentAllotted: { $ne: true }
+  });
 
   // Get document information for each user
   const usersWithDocs = await Promise.all(
@@ -48,9 +51,9 @@ export const uploadCentersCsv = async (req, res) => {
 
   try {
     const rows = await parseCSV(req.file.path);
-  
+
     const centers = validatedCenters(rows); // Ignored typos and not name or no types rows
-  
+
     await centerModel.insertMany(centers)
     res.send("File uploaded successfully");
   } catch (error) {

@@ -107,7 +107,7 @@ const Register = () => {
                             value={formData.role}
                             onChange={handleChange}
                         >
-                            <option value="user">User</option>
+                            <option value="user">Candidate</option>
                             {/* Only showing User for now, Admin usually created manually, but enabling if needed */}
                             <option value="admin">Admin</option>
                         </select>
