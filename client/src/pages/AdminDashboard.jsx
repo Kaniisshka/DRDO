@@ -192,14 +192,14 @@ const AdminDashboard = () => {
         if (!docData) return null;
 
         return (
-            <div className="bg-slate-800/50 rounded-lg p-4 flex flex-col h-full border border-slate-700">
+            <div className="bg-white rounded-lg p-4 flex flex-col h-full border border-gray-200 shadow-sm">
                 <div className="flex justify-between items-center mb-3">
                     <h4 className="font-medium text-text-primary flex items-center gap-2">
                         {title}
                     </h4>
-                    <span className={`px-2 py-0.5 rounded-full text-xs uppercase font-bold tracking-wider ${docData.status === 'approved' ? 'bg-success/20 text-success' :
-                        docData.status === 'rejected' ? 'bg-error/20 text-error' :
-                            'bg-yellow-500/20 text-yellow-500'
+                    <span className={`px-2 py-0.5 rounded-full text-xs uppercase font-bold tracking-wider ${docData.status === 'approved' ? 'bg-green-50 text-green-700 border border-green-300' :
+                        docData.status === 'rejected' ? 'bg-red-50 text-red-700 border border-red-300' :
+                            'bg-yellow-50 text-yellow-700 border border-yellow-300'
                         }`}>
                         {docData.status || 'pending'}
                     </span>
@@ -210,22 +210,22 @@ const AdminDashboard = () => {
                         href={docData.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-accent hover:text-accent-hover text-sm underline underline-offset-2 flex items-center gap-1"
+                        className="text-accent hover:text-accent-hover text-sm underline underline-offset-2 flex items-center gap-1 font-medium"
                     >
                         <span>📄 View Document</span>
                     </a>
                     {docData.remark && (
-                        <p className="mt-2 text-xs text-text-secondary bg-slate-900/50 p-2 rounded border border-slate-700">
-                            <span className="font-semibold text-slate-400">Note:</span> {docData.remark}
+                        <p className="mt-2 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-200">
+                            <span className="font-semibold text-gray-700">Note:</span> {docData.remark}
                         </p>
                     )}
                 </div>
 
-                <div className="flex gap-2 mt-auto pt-3 border-t border-slate-700/50">
+                <div className="flex gap-2 mt-auto pt-3 border-t border-gray-200">
                     <button
                         onClick={() => handleDocumentReview(userId, type, 'approved')}
                         disabled={reviewing || docData.status === 'approved'}
-                        className="flex-1 bg-success hover:bg-success/80 text-white text-xs py-1.5 px-3 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 bg-success hover:bg-success/90 text-white text-xs py-1.5 px-3 rounded transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Approve Document"
                     >
                         Approve
@@ -233,7 +233,7 @@ const AdminDashboard = () => {
                     <button
                         onClick={() => setReviewingDoc({ userId, type, action: 'reject' })}
                         disabled={reviewing || docData.status === 'rejected'}
-                        className="flex-1 bg-error hover:bg-error/80 text-white text-xs py-1.5 px-3 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 bg-error hover:bg-error/90 text-white text-xs py-1.5 px-3 rounded transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Reject Document"
                     >
                         Reject
@@ -250,24 +250,24 @@ const AdminDashboard = () => {
                     <h1 className="text-3xl font-bold text-text-primary">Admin Portal</h1>
                     <p className="text-text-secondary text-sm mt-1">Manage users, specific verifications, and center data</p>
                 </div>
-                <div className="bg-bg-card p-1 rounded-lg border border-slate-700 inline-flex">
+                <div className="bg-white p-1 rounded-lg border border-gray-200 inline-flex shadow-sm">
                     <button
                         onClick={() => setActiveTab('users')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'users' ? 'bg-accent text-white shadow-lg' : 'text-text-secondary hover:text-text-primary'
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'users' ? 'bg-accent text-white shadow-sm' : 'text-text-secondary hover:text-text-primary'
                             }`}
                     >
                         User & Verification Management
                     </button>
                     <button
                         onClick={() => setActiveTab('upload')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'upload' ? 'bg-accent text-white shadow-lg' : 'text-text-secondary hover:text-text-primary'
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'upload' ? 'bg-accent text-white shadow-sm' : 'text-text-secondary hover:text-text-primary'
                             }`}
                     >
                         Center Data Upload
                     </button>
                     <button
                         onClick={() => setActiveTab('new-users')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'new-users' ? 'bg-accent text-white shadow-lg' : 'text-text-secondary hover:text-text-primary'
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'new-users' ? 'bg-accent text-white shadow-sm' : 'text-text-secondary hover:text-text-primary'
                             }`}
                     >
                         New Users
@@ -276,21 +276,21 @@ const AdminDashboard = () => {
             </div>
 
             {activeTab === 'users' ? (
-                <div className="bg-bg-card rounded-xl border border-slate-700 overflow-hidden shadow-xl">
-                    <div className="p-6 border-b border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xl">
+                    <div className="p-6 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
                         <div className="flex items-center gap-4">
                             <h2 className="text-xl font-bold text-text-primary">Candidates List</h2>
-                            <span className="text-xs font-mono text-slate-400 bg-slate-800 px-2 py-1 rounded">Total: {users.length}</span>
+                            <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">Total: {users.length}</span>
                         </div>
 
                         <div className="relative w-full md:w-72">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
                             <input
                                 type="text"
                                 placeholder="Search by name or ID..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-slate-800/50 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-all"
+                                className="w-full bg-blue-50 border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-all"
                             />
                         </div>
                     </div>
@@ -300,7 +300,7 @@ const AdminDashboard = () => {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
-                                <thead className="bg-slate-800/50 text-text-secondary uppercase text-xs tracking-wider">
+                                <thead className="bg-blue-50 text-text-secondary uppercase text-xs tracking-wider">
                                     <tr>
                                         <th className="px-6 py-4 font-semibold">Candidate</th>
                                         <th className="px-6 py-4 font-semibold">Role</th>
@@ -309,7 +309,7 @@ const AdminDashboard = () => {
                                         <th className="px-6 py-4 font-semibold text-center">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-700">
+                                <tbody className="divide-y divide-gray-200">
                                     {(() => {
                                         const filteredUsers = users.filter(user =>
                                             user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -333,7 +333,7 @@ const AdminDashboard = () => {
                                             return (
                                                 <div key={user._id} className="contents group">
                                                     {/* ... row content ... */}
-                                                    <tr className={`transition-colors ${isExpanded ? 'bg-slate-800/40' : 'hover:bg-slate-800/20'}`}>
+                                                    <tr className={`transition-colors ${isExpanded ? 'bg-gray-100' : 'hover:bg-gray-50'}`}>
                                                         <td className="px-6 py-4">
                                                             <div>
                                                                 <div className="font-medium text-text-primary text-base">{user.name}</div>
@@ -355,7 +355,7 @@ const AdminDashboard = () => {
                                                                 onClick={() => toggleExpand(user._id)}
                                                                 className={`text-sm px-3 py-1.5 rounded border transition-all ${isExpanded
                                                                     ? 'bg-accent/20 border-accent text-accent'
-                                                                    : 'border-slate-600 text-text-secondary hover:border-slate-400 hover:text-text-primary'
+                                                                    : 'border-gray-300 text-text-secondary hover:border-gray-400 hover:text-text-primary'
                                                                     }`}
                                                             >
                                                                 {isExpanded ? 'Hide Review' : 'Review Docs'}
@@ -364,9 +364,9 @@ const AdminDashboard = () => {
                                                     </tr>
                                                     {/* Expanded Row for Documents */}
                                                     {isExpanded && (
-                                                        <tr className="bg-slate-800/20">
+                                                        <tr className="bg-gray-50">
                                                             <td colSpan="5" className="px-6 pb-6 pt-2">
-                                                                <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700/50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                                                <div className="bg-gray-50 rounded-lg p-5 border border-gray-200/50 animate-in fade-in slide-in-from-top-2 duration-200">
                                                                     {!userDoc ? (
                                                                         <div className="text-center py-8 text-text-secondary opacity-75">
                                                                             <span className="text-2xl block mb-2">📂</span>
@@ -377,7 +377,7 @@ const AdminDashboard = () => {
                                                                             {userDoc.medical ? (
                                                                                 renderDocumentCard("🏥 Medical Certificate", userDoc.medical, 'medical', user._id)
                                                                             ) : (
-                                                                                <div className="bg-slate-800/30 rounded-lg p-6 flex items-center justify-center border border-dashed border-slate-700 text-text-secondary">
+                                                                                <div className="bg-gray-100 rounded-lg p-6 flex items-center justify-center border border-dashed border-gray-200 text-text-secondary">
                                                                                     🏥 Medical Not Uploaded
                                                                                 </div>
                                                                             )}
@@ -385,7 +385,7 @@ const AdminDashboard = () => {
                                                                             {userDoc.police ? (
                                                                                 renderDocumentCard("🚔 Police Verification", userDoc.police, 'police', user._id)
                                                                             ) : (
-                                                                                <div className="bg-slate-800/30 rounded-lg p-6 flex items-center justify-center border border-dashed border-slate-700 text-text-secondary">
+                                                                                <div className="bg-gray-100 rounded-lg p-6 flex items-center justify-center border border-dashed border-gray-200 text-text-secondary">
                                                                                     🚔 Police Not Uploaded
                                                                                 </div>
                                                                             )}
@@ -393,7 +393,7 @@ const AdminDashboard = () => {
                                                                             {userDoc.caste ? (
                                                                                 renderDocumentCard("📜 Caste Certificate", userDoc.caste, 'caste', user._id)
                                                                             ) : (
-                                                                                <div className="bg-slate-800/30 rounded-lg p-6 flex items-center justify-center border border-dashed border-slate-700 text-text-secondary">
+                                                                                <div className="bg-gray-100 rounded-lg p-6 flex items-center justify-center border border-dashed border-gray-200 text-text-secondary">
                                                                                     📜 Caste Not Uploaded
                                                                                 </div>
                                                                             )}
@@ -413,17 +413,17 @@ const AdminDashboard = () => {
                     )}
                 </div>
             ) : activeTab === 'new-users' ? (
-                <div className="bg-bg-card rounded-xl border border-slate-700 overflow-hidden shadow-xl">
-                    <div className="p-6 border-b border-slate-700 flex justify-between items-center">
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xl">
+                    <div className="p-6 border-b border-gray-200 flex justify-between items-center">
                         <h2 className="text-xl font-bold text-text-primary">Newly Registered Candidates</h2>
-                        <span className="text-xs font-mono text-slate-400 bg-slate-800 px-2 py-1 rounded">
+                        <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
                             Pending Assignment: {users.filter(u => u.applicationStatus === 'pending').length}
                         </span>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
-                            <thead className="bg-slate-800/50 text-text-secondary uppercase text-xs tracking-wider">
+                            <thead className="bg-blue-50 text-text-secondary uppercase text-xs tracking-wider">
                                 <tr>
                                     <th className="px-6 py-4 font-semibold">Candidate</th>
                                     <th className="px-6 py-4 font-semibold">Location</th>
@@ -431,9 +431,9 @@ const AdminDashboard = () => {
                                     <th className="px-6 py-4 font-semibold text-center">Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-700">
+                            <tbody className="divide-y divide-gray-200">
                                 {users.filter(u => u.applicationStatus === 'pending').map((user) => (
-                                    <tr key={user._id} className="hover:bg-slate-800/20 transition-colors">
+                                    <tr key={user._id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="font-medium text-text-primary">{user.name}</div>
                                             <div className="text-text-secondary text-xs">{user.email}</div>
@@ -466,7 +466,7 @@ const AdminDashboard = () => {
                 </div>
             ) : (
                 <div className="max-w-3xl mx-auto mt-10">
-                    <div className="bg-bg-card rounded-xl p-8 border border-slate-700 shadow-2xl">
+                    <div className="bg-white rounded-xl p-8 border border-gray-200 shadow-2xl">
                         <div className="text-center mb-8">
                             <div className="inline-block p-3 rounded-full bg-accent/20 text-accent mb-4">
                                 <span className="text-3xl">📥</span>
@@ -478,7 +478,7 @@ const AdminDashboard = () => {
                         </div>
 
                         <form onSubmit={handleCsvUpload} className="space-y-6">
-                            <div className="group border-2 border-dashed border-slate-600 rounded-xl p-10 text-center hover:border-accent hover:bg-slate-800/30 transition-all cursor-pointer relative">
+                            <div className="group border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:border-accent hover:bg-gray-100 transition-all cursor-pointer relative">
                                 <input
                                     type="file"
                                     accept=".csv"
@@ -524,8 +524,8 @@ const AdminDashboard = () => {
             {
                 reviewingDoc && (
                     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-                        <div className="bg-bg-card rounded-xl border border-slate-700 shadow-2xl max-w-md w-full overflow-hidden transform transition-all scale-100">
-                            <div className="p-6 border-b border-slate-700">
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-2xl max-w-md w-full overflow-hidden transform transition-all scale-100">
+                            <div className="p-6 border-b border-gray-200">
                                 <h3 className="text-xl font-bold text-text-primary">Reject Document</h3>
                             </div>
                             <div className="p-6">
@@ -537,7 +537,7 @@ const AdminDashboard = () => {
                                     value={reviewRemark}
                                     onChange={(e) => setReviewingDoc(prev => ({ ...prev, remark: e.target.value })) || setReviewRemark(e.target.value)}
                                     placeholder="E.g., Document hidden, blurry, wrong format..."
-                                    className="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-4 py-3 text-text-primary placeholder:text-slate-600 focus:outline-none focus:border-error focus:ring-1 focus:ring-error transition-all resize-none"
+                                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-text-primary placeholder:text-slate-600 focus:outline-none focus:border-error focus:ring-1 focus:ring-error transition-all resize-none"
                                     rows="4"
                                     autoFocus
                                 />
@@ -548,7 +548,7 @@ const AdminDashboard = () => {
                                         setReviewingDoc(null);
                                         setReviewRemark('');
                                     }}
-                                    className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 py-2.5 rounded-lg font-medium transition-colors"
+                                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-lg font-medium transition-colors"
                                 >
                                     Cancel
                                 </button>

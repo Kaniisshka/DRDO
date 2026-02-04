@@ -47,10 +47,10 @@ const FileUpload = ({ type, label, currentDoc, onUploadSuccess }) => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'approved': return 'bg-success/10 text-success border-success';
-            case 'rejected': return 'bg-error/10 text-error border-error';
-            case 'pending': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500';
-            default: return 'bg-slate-700/50 text-slate-400 border-slate-600';
+            case 'approved': return 'bg-green-50 text-green-700 border-green-300';
+            case 'rejected': return 'bg-red-50 text-red-700 border-red-300';
+            case 'pending': return 'bg-yellow-50 text-yellow-700 border-yellow-300';
+            default: return 'bg-gray-100 text-gray-600 border-gray-300';
         }
     };
 
@@ -61,7 +61,7 @@ const FileUpload = ({ type, label, currentDoc, onUploadSuccess }) => {
     const showUploadForm = !isUploaded || currentDoc?.status === 'rejected' || isDeleted;
 
     return (
-        <div className="bg-bg-card rounded-xl p-6 border border-slate-700 shadow-md">
+        <div className="bg-bg-card rounded-xl p-6 border border-gray-200 shadow-sm">
             <div className="flex justify-between items-start mb-4">
                 <h3 className="text-lg font-semibold text-text-primary capitalize">{label}</h3>
                 {currentDoc?.status && !isDeleted && (
@@ -80,14 +80,14 @@ const FileUpload = ({ type, label, currentDoc, onUploadSuccess }) => {
                             href={docUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-accent hover:underline text-xs"
+                            className="text-accent hover:underline text-xs font-medium"
                         >
                             View
                         </a>
                     </div>
 
                     {currentDoc.remark && (
-                        <p className="mt-2 text-sm text-yellow-500">Remark: {currentDoc.remark}</p>
+                        <p className="mt-2 text-sm text-yellow-700 bg-yellow-50 p-2 rounded border border-yellow-200">Remark: {currentDoc.remark}</p>
                     )}
 
                     {/* Change Document Button */}
@@ -119,7 +119,7 @@ const FileUpload = ({ type, label, currentDoc, onUploadSuccess }) => {
                                         }
                                     }
                                 }}
-                                className="bg-slate-700 hover:bg-slate-600 text-white rounded px-3 py-1 text-xs transition-colors"
+                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded px-3 py-1 text-xs transition-colors border border-gray-300"
                                 type="button"
                                 disabled={uploading}
                             >
@@ -132,7 +132,7 @@ const FileUpload = ({ type, label, currentDoc, onUploadSuccess }) => {
                 <div className="mb-4 text-sm text-text-secondary italic">No document uploaded</div>
             )}
 
-            {message && <p className={`text-xs mb-3 ${message.includes('success') || message.includes('removed') ? 'text-green-500' : 'text-red-500'}`}>{message}</p>}
+            {message && <p className={`text-xs mb-3 ${message.includes('success') || message.includes('removed') ? 'text-green-600' : 'text-red-600'}`}>{message}</p>}
 
             {showUploadForm ? (
                 <form onSubmit={handleUpload} className="space-y-3">
@@ -141,12 +141,12 @@ const FileUpload = ({ type, label, currentDoc, onUploadSuccess }) => {
                             type="file"
                             accept=".pdf,.jpg,.jpeg,.png"
                             onChange={handleFileChange}
-                            className="block w-full text-sm text-slate-400
+                            className="block w-full text-sm text-gray-600
                             file:mr-4 file:py-2 file:px-4
                             file:rounded-full file:border-0
                             file:text-xs file:font-semibold
-                            file:bg-slate-700 file:text-white
-                            hover:file:bg-accent
+                            file:bg-accent file:text-white
+                            hover:file:bg-accent-hover
                           "
                         />
                     </div>
@@ -155,7 +155,7 @@ const FileUpload = ({ type, label, currentDoc, onUploadSuccess }) => {
                         <button
                             type="submit"
                             disabled={!file || uploading}
-                            className="flex-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 bg-accent hover:bg-accent-hover text-white rounded-lg py-2 text-sm font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {uploading ? 'Uploading...' : 'Upload New'}
                         </button>

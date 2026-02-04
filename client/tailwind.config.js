@@ -7,12 +7,12 @@ export default {
     theme: {
         extend: {
             colors: {
-                'bg-primary': '#0f172a',    // Slate 900
-                'bg-card': '#1e293b',       // Slate 800
-                'text-primary': '#f8fafc',  // Slate 50
-                'text-secondary': '#94a3b8',// Slate 400
-                'accent': '#3b82f6',        // Blue 500
-                'accent-hover': '#2563eb',  // Blue 600
+                'bg-primary': '#F8FAFC',    // Very Light Gray
+                'bg-card': '#FFFFFF',       // Pure White
+                'text-primary': '#1F2937',  // Dark Charcoal
+                'text-secondary': '#4B5563',// Slate Gray
+                'accent': '#1E3A8A',        // Navy Blue
+                'accent-hover': '#1E40AF',  // Navy Blue Hover
                 'success': '#22c55e',       // Green 500
                 'error': '#ef4444',         // Red 500
             }

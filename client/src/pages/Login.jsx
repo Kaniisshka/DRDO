@@ -24,26 +24,26 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
-            <div className="max-w-md w-full bg-bg-card rounded-xl shadow-lg p-8 border border-slate-700">
-                <h2 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-accent to-purple-500 bg-clip-text text-transparent">
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-gray-50">
+            <div className="max-w-md w-full bg-bg-card rounded-xl shadow-lg p-8 border border-gray-200">
+                <h2 className="text-3xl font-bold text-center mb-6 text-accent">
                     Welcome Back
                 </h2>
 
                 {error && (
-                    <div className="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded-lg mb-4 text-sm">
+                    <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg mb-4 text-sm">
                         {error}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary mb-2">Email Address</label>
+                        <label className="block text-sm font-medium text-text-primary mb-2">Email Address</label>
                         <input
                             type="email"
                             name="email"
                             required
-                            className="w-full bg-bg-primary border border-slate-700 rounded-lg px-4 py-3 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
+                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-text-primary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-colors"
                             placeholder="Enter your email"
                             value={formData.email}
                             onChange={handleChange}
@@ -51,12 +51,12 @@ const Login = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-text-secondary mb-2">Password</label>
+                        <label className="block text-sm font-medium text-text-primary mb-2">Password</label>
                         <input
                             type="password"
                             name="password"
                             required
-                            className="w-full bg-bg-primary border border-slate-700 rounded-lg px-4 py-3 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
+                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-text-primary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-colors"
                             placeholder="Enter your password"
                             value={formData.password}
                             onChange={handleChange}
@@ -66,7 +66,7 @@ const Login = () => {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 rounded-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 rounded-lg transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isLoading ? 'Signing In...' : 'Sign In'}
                     </button>

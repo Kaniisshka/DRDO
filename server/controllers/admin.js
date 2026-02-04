@@ -7,26 +7,30 @@ import { docModel } from "../models/document.js";
 
 
 export const getAllUsers = async (req, res) => {
-  const users = await userModel.find({
-    role: "user",
-    appointmentAllotted: { $ne: true }
-  });
+  try {
+    const users = await userModel.find({
+      role: "user"
+    }).sort({ createdAt: -1 });
 
-  // Get document information for each user
-  const usersWithDocs = await Promise.all(
-    users.map(async (user) => {
-      const userDoc = await docModel.findOne({ userId: user._id });
-      return {
-        ...user.toObject(),
-        hasDocuments: !!userDoc,
-        documentsCount: userDoc ? Object.keys(userDoc.toObject()).filter(key =>
-          ['medical', 'police', 'caste'].includes(key) && userDoc[key]
-        ).length : 0
-      };
-    })
-  );
+    // Get document information for each user
+    const usersWithDocs = await Promise.all(
+      users.map(async (user) => {
+        const userDoc = await docModel.findOne({ userId: user._id });
+        return {
+          ...user.toObject(),
+          hasDocuments: !!userDoc,
+          documentsCount: userDoc ? Object.keys(userDoc.toObject()).filter(key =>
+            ['medical', 'police', 'caste'].includes(key) && userDoc[key]
+          ).length : 0
+        };
+      })
+    );
 
-  res.status(200).json({ users: usersWithDocs });
+    res.status(200).json({ users: usersWithDocs });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Failed to fetch users" });
+  }
 };
 
 export const getOneUser = async (req, res) => {
